@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mapfre One-to-One</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; background:#f5f5f5; }
+    header { background:#c00; color:white; padding:20px; }
+    header h1 { margin:0; }
+    nav { background:#900; padding:10px; }
+    nav a { color:white; margin:0 15px; text-decoration:none; }
+    .dashboard { display:flex; flex-wrap:wrap; padding:20px; }
+    .card { background:white; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);
+            margin:10px; padding:20px; flex:1; min-width:250px; }
+    .card h2 { margin-top:0; color:#c00; }
+    footer { background:#333; color:white; text-align:center; padding:15px; margin-top:20px; }
+    #pricing-value { font-weight:bold; color:#090; }
+    /* Flujo de compra */
+    #wizard { margin:20px; padding:20px; background:white; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    #wizard-step { margin-bottom:20px; }
+    button { background:#c00; color:white; border:none; padding:10px 15px; border-radius:5px; cursor:pointer; }
+    button:disabled { background:#ccc; cursor:not-allowed; }
+    /* Chatbot */
+    #chatbot { position:fixed; bottom:20px; right:20px; width:300px; background:white;
+               border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.2); }
+    #chatbot-header { background:#c00; color:white; padding:10px; border-radius:8px 8px 0 0; }
+    #chatbot-messages { height:200px; overflow-y:auto; padding:10px; font-size:14px; }
+    #chatbot-input { display:flex; border-top:1px solid #ccc; }
+    #chatbot-input input { flex:1; border:none; padding:10px; }
+    #chatbot-input button { background:#c00; color:white; border:none; padding:10px; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Mapfre One-to-One</h1>
+    <p>Buenos días, María, tu seguridad evoluciona contigo</p>
+  </header>
+  <nav>
+    <a href="#">Inicio</a>
+    <a href="#">Mis Seguros</a>
+    <a href="#">Ofertas Personalizadas</a>
+    <a href="#">Analítica</a>
+    <a href="#">Contacto</a>
+  </nav>
+
+  <!-- Flujo de compra -->
+  <div id="wizard">
+    <h2>Simulación de Compra de Póliza</h2>
+    <div id="wizard-step"></div>
+    <button id="next-btn">Siguiente</button>
+  </div>
+
+  <!-- Panel de analítica -->
+  <div class="card" style="margin:20px;">
+    <h2>Analítica Dinámica</h2>
+    <canvas id="chart"></canvas>
+  </div>
+
+  <footer>
+    © 2026 Mapfre One-to-One - Portal ficticio
+  </footer>
+
+  <!-- Chatbot -->
+  <div id="chatbot">
+    <div id="chatbot-header">Asesor Virtual Mapfre</div>
+    <div id="chatbot-messages"></div>
+    <div id="chatbot-input">
+      <input type="text" id="chatbot-text" placeholder="Escribe tu mensaje...">
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    // Flujo de compra paso a paso
+    const steps = [
+      "Paso 1: Selecciona el tipo de seguro (Auto, Salud, Hogar).",
+      "Paso 2: Indica el nivel de cobertura deseado (básico, estándar, premium).",
+      "Paso 3: El sistema calcula el precio dinámico según tu perfil.",
+      "Paso 4: Revisa beneficios adicionales y descuentos aplicables.",
+      "Paso 5: Confirma tu compra y recibe tu póliza digital."
+    ];
+    let currentStep = 0;
+    const stepDiv = document.getElementById('wizard-step');
+    const nextBtn = document.getElementById('next-btn');
+
+    function showStep() {
+      stepDiv.textContent = steps[currentStep];
+      if (currentStep === steps.length - 1) {
+        nextBtn.textContent = "Finalizar";
+      }
+      updateChart(currentStep);
+    }
+
+    nextBtn.addEventListener('click', () => {
+      if (currentStep < steps.length - 1) {
+        currentStep++;
+        showStep();
+      } else {
+        stepDiv.textContent = "✅ ¡Compra completada! Tu póliza digital está disponible en tu perfil.";
+        nextBtn.disabled = true;
+        updateChart(currentStep);
+      }
+    });
+
+    showStep();
+
+    // Gráfico dinámico con Chart.js
+    const ctx = document.getElementById('chart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Paso 1','Paso 2','Paso 3','Paso 4','Paso 5'],
+        datasets: [{
+          label: 'Prima estimada',
+          data: [80, 100, 120, 110, 115],
+          borderColor: '#c00',
+          fill: false
+        },{
+          label: 'Beneficios acumulados',
+          data: [10, 20, 40, 60, 80],
+          borderColor: '#090',
+          fill: false
+        }]
+      }
+    });
+
+    function updateChart(step) {
+      chart.data.datasets[0].backgroundColor = chart.data.datasets[0].data.map((_,i)=> i===step ? '#c00':'#ccc');
+      chart.update();
+    }
+
+    // Chatbot simple integrado
+    const messages = document.getElementById('chatbot-messages');
+    function sendMessage() {
+      const text = document.getElementById('chatbot-text').value;
+      if (!text) return;
+      addMessage('Tú', text);
+      document.getElementById('chatbot-text').value = '';
+      setTimeout(() => {
+        let reply = "Gracias por tu consulta. Estoy aquí para ayudarte con tus seguros.";
+        if (text.toLowerCase().includes("precio")) reply = "El precio depende de tu nivel de cobertura. Avanza al Paso 3 para verlo.";
+        if (text.toLowerCase().includes("cobertura")) reply = "Puedes elegir entre básica, estándar o premium en el Paso 2.";
+        if (text.toLowerCase().includes("confirmar")) reply = "En el Paso 5 podrás confirmar tu compra y recibir tu póliza digital.";
+        if (text.toLowerCase().includes("beneficios")) reply = "En el Paso 4 verás los beneficios adicionales y descuentos aplicables.";
+        addMessage('Mapfre', reply);
+      }, 1000);
+    }
+    function addMessage(sender, text) {
+      const div = document.createElement('div');
+      div.textContent = sender + ": " + text;
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
+  </script>
+</body>
+</html>
